@@ -7,12 +7,12 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type Busyboi struct {
+type Crawlerbox struct {
 	queueMsgs chan amqp.Delivery
 }
 
 func main() {
-	bb := &Busyboi{
+	bb := &Crawlerbox{
 		queueMsgs: make(chan amqp.Delivery),
 	}
 
