@@ -14,7 +14,7 @@ func TestWorker(t *testing.T) {
 		t.Skip()
 	}
 
-	bb := &Busyboi{
+	bb := &Crawlerbox{
 		queueMsgs: make(chan amqp.Delivery, 100),
 	}
 
