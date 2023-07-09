@@ -72,7 +72,7 @@ func TestWorker(t *testing.T) {
 	go RabbitMqGetMessages(bb)
 
 	opts := []chromedp.ExecAllocatorOption{
-		chromedp.UserAgent("Busyboi"),
+		chromedp.UserAgent("Crawlerbox"),
 		chromedp.WindowSize(1920, 1080),
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
