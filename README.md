@@ -1,4 +1,4 @@
-# Busyboi
+# Crawlerbox
 Light, fast and scalable web scraper for structured data.
 
 ## Features
