@@ -54,7 +54,6 @@ func main() {
 		}
 
 		if timeoutUntilNext > 0 {
-			fmt.Printf("Worker #%s backing off for %s\n", m.MessageId, timeoutUntilNext.String())
 			time.Sleep(timeoutUntilNext)
 		}
 		go worker(m.Body, ctx, bb)
