@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"sync"
 
 	"github.com/chromedp/chromedp"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -30,7 +31,12 @@ func main() {
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
 
+	var wg sync.WaitGroup
+
 	for m := range bb.queueMsgs {
-		go worker(m.Body, ctx)
+		go worker(m.Body, ctx, &wg)
 	}
+
+	wg.Wait()
+	close(bb.queueMsgs)
 }

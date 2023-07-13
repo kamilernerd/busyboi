@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/chromedp/chromedp"
@@ -83,9 +84,12 @@ func TestWorker(t *testing.T) {
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
 
-	i := 0
+	var wg sync.WaitGroup
+
 	for m := range bb.queueMsgs {
-		go worker(m.Body, ctx)
-		i++
+		go worker(m.Body, ctx, &wg)
 	}
+
+	wg.Wait()
+	close(bb.queueMsgs)
 }
