@@ -9,6 +9,7 @@ Light, fast and scalable web scraper for structured data.
  - Regex matching option
  - Re-schedules jobs when url is unreachable
  - Allowes grouping of elements Parent -> child
+ - Config based
 
  ## Example config
  ```
