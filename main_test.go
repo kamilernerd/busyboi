@@ -39,6 +39,7 @@ func TestWorker(t *testing.T) {
 							Name:     "Image 1",
 							Selector: "body .product_image",
 							Attr:     "src",
+							Regex:    "(\\.jpg)",
 						},
 						{
 							Name:     "Image 2",
@@ -46,6 +47,7 @@ func TestWorker(t *testing.T) {
 							Attr:     "src",
 						},
 					},
+					Regex: "([a-z]+\\.jpg)",
 				},
 				{
 					Name:     "Title",
@@ -54,9 +56,7 @@ func TestWorker(t *testing.T) {
 				{
 					Name:     "Price",
 					Selector: "body .product_price",
-					Filters: []string{
-						"number",
-					},
+					Regex:    "(\\.[0-9]+)",
 				},
 				{
 					Name:     "Some url",

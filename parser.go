@@ -1,6 +1,7 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -10,8 +11,11 @@ import (
  * DOM parser
  * Parses HTML downloaded by the worker and returns elements
  * specified in a json config.
+ * 
+ * Regex match string when provided in a "parent" overrides
+ * the regex string provided in the children elements
  */
-func parse(conf []JobConfigField, DOM string) map[string]interface{} {
+func parse(conf []JobConfigField, DOM string, parentRegex string) map[string]interface{} {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(DOM))
 
 	if err != nil {
@@ -30,17 +34,27 @@ func parse(conf []JobConfigField, DOM string) map[string]interface{} {
 		}
 
 		if field.Children != nil {
-			fields[field.Name] = parse(field.Children, DOM)
+			fields[field.Name] = parse(field.Children, DOM, field.Regex)
+			continue
 		}
 
-		if field.Filters != nil {
-			for _, filter := range field.Filters {
-				switch filter {
-				case "number":
-				case "trim":
-					break
-				}
+		if parentRegex != "" {
+			field.Regex = parentRegex
+		}
+
+		if field.Regex != "" {
+			c, err := regexp.Compile(field.Regex)
+			if err != nil {
+				// Log error
 			}
+
+			f := c.FindString(fields[field.Name].(string))
+
+			if f == "" {
+				// Log error
+			}
+
+			fields[field.Name] = f
 		}
 	}
 

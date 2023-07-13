@@ -20,7 +20,7 @@ type JobConfigField struct {
 	Selector string           `json:"selector"`
 	Attr     string           `json:"attr,omitempty"`
 	Children []JobConfigField `json:"children,omitempty"`
-	Filters  []string         `json:"filters,omitempty"`
+	Regex    string           `json:"regex,omitempty"`
 }
 
 func worker(rawConfig []byte, ctx context.Context) {
@@ -60,5 +60,5 @@ func worker(rawConfig []byte, ctx context.Context) {
 		return
 	}
 
-	fmt.Print(parse(conf.Fields, DOM))
+	fmt.Print(parse(conf.Fields, DOM, ""))
 }

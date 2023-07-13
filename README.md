@@ -6,6 +6,9 @@ Light, fast and scalable web scraper for structured data.
  - Reads scraping jobs from rabbitmq
  - Respects robotx.txt
  - Renders javascript
+ - Regex matching option
+ - Re-schedules jobs when url is unreachable
+ - Allowes grouping of elements Parent -> child
 
  ## Example config
  ```
@@ -32,7 +35,32 @@ Light, fast and scalable web scraper for structured data.
                     "attr": "href"
                 }
             ]
+        },
+        {
+            "name": "a group of elements within a parent",
+            "selector": ".some-parent-element",
+            "children": [
+                {
+                    "name": "a link within a parent element",
+                    "selector": "a[class=\"some_class"\]",
+                    "attr": "href",
+                    "regex": "(http|s)+"
+                }
+            ]
+        },
+        {
+            "name": "a group of elements within a parent",
+            "selector": ".some-parent-element",
+            "regex": "(http|s)+",
+            "children": [
+                {
+                    "name": "a link within a parent element",
+                    "selector": "a[class=\"some_class"\]",
+                    "attr": "href"
+                }
+            ]
         }
+
     ]
 }
 ```

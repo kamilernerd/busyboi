@@ -1,2 +1,2 @@
-UserAgent: Busyboi
+UserAgent: Crawlerbox
 Allow: /
