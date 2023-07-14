@@ -17,7 +17,7 @@ func TestWorker(t *testing.T) {
 		t.Skip()
 	}
 
-	bb := &Crawlerbox{
+	bb := &Busyboi{
 		queueMsgs:      make(chan amqp.Delivery),
 		wg:             sync.WaitGroup{},
 		workersCounter: 1,
@@ -77,7 +77,7 @@ func TestWorker(t *testing.T) {
 	go RabbitMqGetMessages(bb)
 
 	opts := []chromedp.ExecAllocatorOption{
-		chromedp.UserAgent("Crawlerbox"),
+		chromedp.UserAgent("Busyboi"),
 		chromedp.WindowSize(1920, 1080),
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,

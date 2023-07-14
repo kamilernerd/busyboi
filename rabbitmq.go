@@ -9,7 +9,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func RabbitMqGetMessages(bb *Crawlerbox) {
+func RabbitMqGetMessages(bb *Busyboi) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
 		log.Panicf("Failed to connect to queue: %s", err)

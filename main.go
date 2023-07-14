@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"sync"
 	"time"
@@ -15,14 +14,14 @@ const (
 	ExecutionsPerWorker = 50
 )
 
-type Crawlerbox struct {
+type Busyboi struct {
 	queueMsgs      chan amqp.Delivery
 	wg             sync.WaitGroup
 	workersCounter uint
 }
 
 func main() {
-	bb := &Crawlerbox{
+	bb := &Busyboi{
 		queueMsgs:      make(chan amqp.Delivery),
 		wg:             sync.WaitGroup{},
 		workersCounter: 1,

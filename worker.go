@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-
+	"fmt"
 	"github.com/chromedp/chromedp"
 )
 
@@ -22,7 +22,7 @@ type JobConfigField struct {
 	Regex    string           `json:"regex,omitempty"`
 }
 
-func worker(rawConfig []byte, ctx context.Context, bb *Crawlerbox) {
+func worker(rawConfig []byte, ctx context.Context, bb *Busyboi) {
 	bb.wg.Add(1)
 	bb.workersCounter++
 	defer bb.wg.Done()
@@ -67,5 +67,5 @@ func worker(rawConfig []byte, ctx context.Context, bb *Crawlerbox) {
 		return
 	}
 
-//	fmt.Print(parse(conf.Fields, DOM, ""))
+	fmt.Print(parse(conf.Fields, DOM, ""))
 }
