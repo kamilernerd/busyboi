@@ -12,7 +12,32 @@ Light, fast and scalable web scraper for structured data.
  - Config based
  - Workload limiter (variable)
 
- ## Example config
+## How to install?
+ ```
+ $ git clone git@github.com:kamilernerd/busyboi.git
+ $ cd busyboi
+ $ make
+ ```
+ 
+## CLI arguments
+ ```
+Usage of ./busyboi:
+  -concurreny_limit int
+    	Limits how many crawling jobs can run simultaneously (default 10)
+  -queue_host string
+    	Hostname for rabbitmq (default "localhost")
+  -queue_name string
+    	Queue name for rabbitmq (default "busyboi")
+  -queue_password string
+    	Password for rabbitmq (default "guest")
+  -queue_port string
+    	Port for rabbitmq (default "5672")
+  -queue_user string
+    	User for rabbitmq (default "guest")
+ ```
+
+
+## Example config
  ```
  {
     "collection": "some_random",
@@ -66,3 +91,7 @@ Light, fast and scalable web scraper for structured data.
     ]
 }
 ```
+
+## TODO
+- In-memory TTL cache (DOM and parsed content)
+- Maybe some long term storage support (MAYBE!)
