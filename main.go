@@ -2,35 +2,47 @@ package main
 
 import (
 	"context"
-	"math"
-	"sync"
-	"time"
+	"flag"
 
 	"github.com/chromedp/chromedp"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-const (
-	ExecutionsPerWorker = 50
-)
-
 type Busyboi struct {
-	queueMsgs      chan amqp.Delivery
-	wg             sync.WaitGroup
-	workersCounter uint
+	queueMsgs chan amqp.Delivery
+	mq        *Rabbitmq
 }
 
 func main() {
+	var queue_host string
+	var queue_user string
+	var queue_password string
+	var queue_port string
+	var queue_name string
+	var concurreny_limit int
+	flag.StringVar(&queue_host, "queue_host", "localhost", "Hostname for rabbitmq")
+	flag.StringVar(&queue_user, "queue_user", "guest", "User for rabbitmq")
+	flag.StringVar(&queue_password, "queue_password", "guest", "Password for rabbitmq")
+	flag.StringVar(&queue_port, "queue_port", "5672", "Port for rabbitmq")
+	flag.StringVar(&queue_name, "queue_name", "busyboi", "Queue name for rabbitmq")
+	flag.IntVar(&concurreny_limit, "concurreny_limit", 10, "Limits how many crawling jobs can run simultaneously")
+	flag.Parse()
+
 	bb := &Busyboi{
-		queueMsgs:      make(chan amqp.Delivery),
-		wg:             sync.WaitGroup{},
-		workersCounter: 1,
+		queueMsgs: make(chan amqp.Delivery),
+		mq: &Rabbitmq{
+			hostname: queue_host,
+			user:     queue_user,
+			password: queue_password,
+			port:     queue_port,
+			queue:    queue_name,
+		},
 	}
 
-	go RabbitMqGetMessages(bb)
+	go bb.mq.RabbitMqGetMessages(bb)
 
 	opts := []chromedp.ExecAllocatorOption{
-		chromedp.UserAgent("Crawlerbox"),
+		chromedp.UserAgent("Busyboi"),
 		chromedp.WindowSize(1920, 1080),
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
@@ -41,23 +53,15 @@ func main() {
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
 
+	limiter := make(chan int, concurreny_limit)
 	for m := range bb.queueMsgs {
-		t := time.Now()
-		timeoutWorker := time.Duration(math.Ceil(1e9 / (ExecutionsPerWorker / float64(bb.workersCounter))))
+		limiter <- 1
 
-		timeoutUntilNext := -(time.Since(t) - timeoutWorker)
-
-		// Timeouts bigger than 1sec are no go...
-		if timeoutUntilNext > time.Second * 1 {
-			timeoutUntilNext = time.Microsecond * 100
-		}
-
-		if timeoutUntilNext > 0 {
-			time.Sleep(timeoutUntilNext)
-		}
-		go worker(m.Body, ctx, bb)
+		go func(m amqp.Delivery) {
+			worker(m.Body, ctx, bb)
+			<-limiter
+		}(m)
 	}
 
-	bb.wg.Wait()
 	close(bb.queueMsgs)
 }

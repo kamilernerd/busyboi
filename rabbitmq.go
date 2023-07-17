@@ -3,14 +3,23 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func RabbitMqGetMessages(bb *Busyboi) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+type Rabbitmq struct {
+	hostname string
+	user     string
+	password string
+	port     string
+	queue    string
+}
+
+func (r *Rabbitmq) RabbitMqGetMessages(bb *Busyboi) {
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", r.user, r.password, r.hostname, r.port))
 	if err != nil {
 		log.Panicf("Failed to connect to queue: %s", err)
 	}
@@ -25,7 +34,7 @@ func RabbitMqGetMessages(bb *Busyboi) {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"tasks", // name
+		r.queue, // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -56,8 +65,8 @@ func RabbitMqGetMessages(bb *Busyboi) {
 	}
 }
 
-func RabbitMqAddMessages(job JobConfig) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+func (r *Rabbitmq) RabbitMqAddMessages(job JobConfig) {
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/", r.user, r.password, r.hostname, r.port))
 	if err != nil {
 		log.Panicf("Failed to connect to queue: %s", err)
 	}
@@ -72,7 +81,7 @@ func RabbitMqAddMessages(job JobConfig) {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"tasks", // name
+		r.queue, // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive

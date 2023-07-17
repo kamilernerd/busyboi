@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/chromedp/chromedp"
 )
 
@@ -23,14 +24,6 @@ type JobConfigField struct {
 }
 
 func worker(rawConfig []byte, ctx context.Context, bb *Busyboi) {
-	bb.wg.Add(1)
-	bb.workersCounter++
-	defer bb.wg.Done()
-
-	defer func ()  {
-		bb.workersCounter--
-	}()
-
 	var conf JobConfig
 	err := json.Unmarshal(rawConfig, &conf)
 
@@ -42,7 +35,7 @@ func worker(rawConfig []byte, ctx context.Context, bb *Busyboi) {
 	// Re-queue job is site is unreachable
 	ok := canReach(conf.Url)
 	if !ok {
-		RabbitMqAddMessages(conf)
+		bb.mq.RabbitMqAddMessages(conf)
 		return
 	}
 
@@ -67,5 +60,6 @@ func worker(rawConfig []byte, ctx context.Context, bb *Busyboi) {
 		return
 	}
 
-	fmt.Print(parse(conf.Fields, DOM, ""))
+	data := parse(conf.Fields, DOM, "")
+	fmt.Println(data)
 }

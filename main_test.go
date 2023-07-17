@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"math"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/chromedp/chromedp"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -17,21 +15,39 @@ func TestWorker(t *testing.T) {
 		t.Skip()
 	}
 
+	var queue_host string
+	var queue_user string
+	var queue_password string
+	var queue_port string
+	var queue_name string
+	var concurreny_limit int
+	flag.StringVar(&queue_host, "queue_host", "localhost", "Hostname for rabbitmq")
+	flag.StringVar(&queue_user, "queue_user", "guest", "User for rabbitmq")
+	flag.StringVar(&queue_password, "queue_password", "guest", "Password for rabbitmq")
+	flag.StringVar(&queue_port, "queue_port", "5672", "Port for rabbitmq")
+	flag.StringVar(&queue_name, "queue_name", "busyboi", "Queue name for rabbitmq")
+	flag.IntVar(&concurreny_limit, "concurreny_limit", 10, "Limits how many crawling jobs can run simultaneously")
+	flag.Parse()
+
 	bb := &Busyboi{
-		queueMsgs:      make(chan amqp.Delivery),
-		wg:             sync.WaitGroup{},
-		workersCounter: 1,
+		queueMsgs: make(chan amqp.Delivery),
+		mq: &Rabbitmq{
+			hostname: queue_host,
+			user:     queue_user,
+			password: queue_password,
+			port:     queue_port,
+			queue:    queue_name,
+		},
 	}
 
 	go testserver()
 
 	urls := []string{
 		"http://localhost:8080",
-		"http://localhost:1337",
 	}
 
 	for i, k := range urls {
-		RabbitMqAddMessages(JobConfig{
+		bb.mq.RabbitMqAddMessages(JobConfig{
 			Collection: "products",
 			Url:        k,
 			Fields: []JobConfigField{
@@ -74,7 +90,7 @@ func TestWorker(t *testing.T) {
 		fmt.Printf("Added job # %d\n", i)
 	}
 
-	go RabbitMqGetMessages(bb)
+	go bb.mq.RabbitMqGetMessages(bb)
 
 	opts := []chromedp.ExecAllocatorOption{
 		chromedp.UserAgent("Busyboi"),
@@ -88,24 +104,16 @@ func TestWorker(t *testing.T) {
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	defer cancel()
 
+	limiter := make(chan uint, concurreny_limit)
 	for m := range bb.queueMsgs {
-		t := time.Now()
-		timeoutWorker := time.Duration(math.Ceil(1e9 / (ExecutionsPerWorker / float64(bb.workersCounter))))
+		limiter <- 1
 
-		timeoutUntilNext := -(time.Since(t) - timeoutWorker)
-
-		// Timeouts bigger than 1sec are no go...
-		if timeoutUntilNext > time.Second * 1 {
-			timeoutUntilNext = time.Microsecond * 100
-		}
-
-		if timeoutUntilNext > 0 {
-			time.Sleep(timeoutUntilNext)
-		}
-		go worker(m.Body, ctx, bb)
+		go func(m amqp.Delivery) {
+			worker(m.Body, ctx, bb)
+			<-limiter
+		}(m)
 	}
 
-	bb.wg.Wait()
 	close(bb.queueMsgs)
 }
 
@@ -114,13 +122,36 @@ func TestThrottle(t *testing.T) {
 		t.Skip()
 	}
 
+	var queue_host string
+	var queue_user string
+	var queue_password string
+	var queue_port string
+	var queue_name string
+	flag.StringVar(&queue_host, "queue_host", "localhost", "Hostname for rabbitmq")
+	flag.StringVar(&queue_user, "queue_user", "guest", "User for rabbitmq")
+	flag.StringVar(&queue_password, "queue_password", "guest", "Password for rabbitmq")
+	flag.StringVar(&queue_port, "queue_port", "5672", "Port for rabbitmq")
+	flag.StringVar(&queue_name, "queue_name", "busyboi", "Queue name for rabbitmq")
+	flag.Parse()
+
+	bb := &Busyboi{
+		queueMsgs: make(chan amqp.Delivery),
+		mq: &Rabbitmq{
+			hostname: queue_host,
+			user:     queue_user,
+			password: queue_password,
+			port:     queue_port,
+			queue:    queue_name,
+		},
+	}
+
 	urls := []string{
 		"http://localhost:8080",
 	}
 
 	for i := 0; i < 50; i++ {
 		for i, k := range urls {
-			RabbitMqAddMessages(JobConfig{
+			bb.mq.RabbitMqAddMessages(JobConfig{
 				Collection: "products",
 				Url:        k,
 				Fields: []JobConfigField{

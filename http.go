@@ -36,7 +36,12 @@ func robots(rawUrl string) bool {
 
 	// Check if allowed
 	robots, err := robotstxt.FromResponse(resp)
-	group := robots.FindGroup("Crawlerbox")
+	group := robots.FindGroup("Busyboi")
+
+	if err != nil {
+		// Handle missing robots txt
+		// Handle unreachable robots txt
+	}
 
 	can := true
 	if !group.Test(u.Path) {

@@ -10,7 +10,7 @@ Light, fast and scalable web scraper for structured data.
  - Re-schedules jobs when url is unreachable
  - Allowes grouping of elements Parent -> child
  - Config based
- - Automatic throttling (Based on amount of workers running less -> faster)
+ - Workload limiter (variable)
 
  ## Example config
  ```

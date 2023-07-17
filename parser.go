@@ -11,7 +11,7 @@ import (
  * DOM parser
  * Parses HTML downloaded by the worker and returns elements
  * specified in a json config.
- * 
+ *
  * Regex match string when provided in a "parent" overrides
  * the regex string provided in the children elements
  */
