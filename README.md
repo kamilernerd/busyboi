@@ -10,7 +10,8 @@ Light, fast and scalable web scraper for structured data.
  - Re-schedules jobs when url is unreachable
  - Allowes grouping of elements Parent -> child
  - Config based
- - Workload limiter (variable)
+ - Concurrency limiter (variable - default 10)
+ - In memory cache (variable - default 15 minutes)
 
 ## How to install?
  ```
@@ -34,6 +35,8 @@ Usage of ./busyboi:
     	Port for rabbitmq (default "5672")
   -queue_user string
     	User for rabbitmq (default "guest")
+  -cache_ttl int
+        How long should cache be stored (in seconds). Default is 15 minutes.
  ```
 
 
@@ -93,5 +96,4 @@ Usage of ./busyboi:
 ```
 
 ## TODO
-- In-memory TTL cache (DOM and parsed content)
-- Maybe some long term storage support (MAYBE!)
+- Some long term storage support (MAYBE!)
