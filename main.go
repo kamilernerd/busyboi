@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"time"
 
 	"github.com/chromedp/chromedp"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -11,6 +12,7 @@ import (
 type Busyboi struct {
 	queueMsgs chan amqp.Delivery
 	mq        *Rabbitmq
+	cache     *Cache
 }
 
 func main() {
@@ -20,12 +22,14 @@ func main() {
 	var queue_port string
 	var queue_name string
 	var concurreny_limit int
+	var cache_ttl int
 	flag.StringVar(&queue_host, "queue_host", "localhost", "Hostname for rabbitmq")
 	flag.StringVar(&queue_user, "queue_user", "guest", "User for rabbitmq")
 	flag.StringVar(&queue_password, "queue_password", "guest", "Password for rabbitmq")
 	flag.StringVar(&queue_port, "queue_port", "5672", "Port for rabbitmq")
 	flag.StringVar(&queue_name, "queue_name", "busyboi", "Queue name for rabbitmq")
 	flag.IntVar(&concurreny_limit, "concurreny_limit", 10, "Limits how many crawling jobs can run simultaneously")
+	flag.IntVar(&cache_ttl, "cache_ttl", 900, "How long should cache be stored (in seconds). Default is 15 minutes.")
 	flag.Parse()
 
 	bb := &Busyboi{
@@ -37,7 +41,10 @@ func main() {
 			port:     queue_port,
 			queue:    queue_name,
 		},
+		cache: NewCache(time.Second * time.Duration(cache_ttl)),
 	}
+
+	go bb.cache.Invalidator()
 
 	go bb.mq.RabbitMqGetMessages(bb)
 

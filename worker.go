@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"time"
 
 	"github.com/chromedp/chromedp"
 )
@@ -29,6 +29,14 @@ func worker(rawConfig []byte, ctx context.Context, bb *Busyboi) {
 
 	if err != nil {
 		// Raport error
+		return
+	}
+
+	cache := bb.cache.Has(conf.Url)
+
+	// Cache hit!
+	if cache != nil {
+		// fmt.Println(bb.cache.table)
 		return
 	}
 
@@ -61,5 +69,10 @@ func worker(rawConfig []byte, ctx context.Context, bb *Busyboi) {
 	}
 
 	data := parse(conf.Fields, DOM, "")
-	fmt.Println(data)
+
+	bb.cache.AddOrUpdate(Bucket{
+		Url:       conf.Url,
+		Refreshed: time.Now(),
+		Data:      data,
+	})
 }
